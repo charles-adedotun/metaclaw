@@ -140,7 +140,7 @@ story.append(Paragraph("CANDIDATE NAME", styles['Name']))
 # Title (clearly separated — spaceBefore prevents overlap)
 story.append(Paragraph("Professional Title | Specialization", styles['ProTitle']))
 # Contact (compact single line)
-story.append(Paragraph("email@example.com  •  +234 XXX XXX XXXX  •  Lagos, Nigeria  •  linkedin.com/in/name", styles['Contact']))
+story.append(Paragraph("email@example.com  •  +1 XXX XXX XXXX  •  City, Country  •  linkedin.com/in/name", styles['Contact']))
 # Accent line separator
 story.append(HRFlowable(width="100%", thickness=1.5, color=SECONDARY, spaceAfter=12))
 
