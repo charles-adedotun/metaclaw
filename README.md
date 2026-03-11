@@ -23,7 +23,7 @@ MetaClaw provides that same core functionality, but in a codebase small enough t
 ## Quick Start
 
 ```bash
-git clone https://github.com/qwibitai/metaclaw.git
+git clone https://github.com/charles-adedotun/metaclaw.git
 cd metaclaw
 claude
 ```

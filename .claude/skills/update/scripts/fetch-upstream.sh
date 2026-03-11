@@ -14,14 +14,14 @@ if git remote get-url upstream &>/dev/null; then
   REMOTE="upstream"
 elif git remote get-url origin &>/dev/null; then
   ORIGIN_URL=$(git remote get-url origin)
-  if echo "$ORIGIN_URL" | grep -q "qwibitai/metaclaw"; then
+  if echo "$ORIGIN_URL" | grep -q "charles-adedotun/metaclaw"; then
     REMOTE="origin"
   fi
 fi
 
 if [ -z "$REMOTE" ]; then
-  echo "No upstream remote found. Adding upstream → https://github.com/qwibitai/metaclaw.git"
-  git remote add upstream https://github.com/qwibitai/metaclaw.git
+  echo "No upstream remote found. Adding upstream → https://github.com/charles-adedotun/metaclaw.git"
+  git remote add upstream https://github.com/charles-adedotun/metaclaw.git
   REMOTE="upstream"
 fi
 

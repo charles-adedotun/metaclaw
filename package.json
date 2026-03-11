@@ -4,7 +4,7 @@
   "description": "Open-source Claude-on-Staff (CoS) framework. Run AI agents securely in containers.",
   "repository": {
     "type": "git",
-    "url": "https://github.com/qwibitai/metaclaw.git"
+    "url": "https://github.com/charles-adedotun/metaclaw.git"
   },
   "keywords": ["claude", "ai-agent", "chief-of-staff", "container", "telegram", "whatsapp"],
   "type": "module",

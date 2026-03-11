@@ -170,10 +170,10 @@ describe('fetch-upstream.sh', () => {
     fs.rmSync(status.TEMP_DIR, { recursive: true, force: true });
   });
 
-  it('uses origin when it points to qwibitai/metaclaw', () => {
-    // Set origin to a URL containing qwibitai/metaclaw
+  it('uses origin when it points to charles-adedotun/metaclaw', () => {
+    // Set origin to a URL containing charles-adedotun/metaclaw
     execSync(
-      `git remote add origin https://github.com/qwibitai/metaclaw.git`,
+      `git remote add origin https://github.com/charles-adedotun/metaclaw.git`,
       { cwd: projectDir, stdio: 'pipe' },
     );
     // We can't actually fetch from GitHub in tests, but we can verify
@@ -218,7 +218,7 @@ describe('fetch-upstream.sh', () => {
       encoding: 'utf-8',
     });
     expect(remotes).toContain('upstream');
-    expect(remotes).toContain('qwibitai/metaclaw');
+    expect(remotes).toContain('charles-adedotun/metaclaw');
   });
 
   it('extracts files to temp dir correctly', () => {
