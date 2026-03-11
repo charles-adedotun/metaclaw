@@ -9,7 +9,7 @@
 <p align="center">
   <a href="https://github.com/charles-adedotun/metaclaw/stargazers"><img src="https://img.shields.io/github/stars/charles-adedotun/metaclaw?style=flat" alt="GitHub Stars"></a>
   <a href="https://github.com/charles-adedotun/metaclaw/blob/main/LICENSE"><img src="https://img.shields.io/github/license/charles-adedotun/metaclaw" alt="License"></a>
-  <a href="https://github.com/charles-adedotun/metaclaw/actions"><img src="https://img.shields.io/github/actions/workflow/status/charles-adedotun/metaclaw/ci.yml?label=tests" alt="Tests"></a>
+  <a href="https://github.com/charles-adedotun/metaclaw/actions"><img src="https://img.shields.io/github/actions/workflow/status/charles-adedotun/metaclaw/test.yml?label=tests" alt="Tests"></a>
 </p>
 
 ## What is MetaClaw
