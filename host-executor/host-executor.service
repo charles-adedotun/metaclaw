@@ -1,0 +1,26 @@
+[Unit]
+Description=MetaClaw Host Executor — whitelisted command runner for container agents
+After=metaclaw.service
+Requires=metaclaw.service
+
+[Service]
+Type=simple
+# Adjust User/Group/WorkingDirectory for your deployment
+User=${USER}
+Group=${USER}
+WorkingDirectory=/home/${USER}/metaclaw
+ExecStart=/home/${USER}/metaclaw/host-executor/executor.sh
+Restart=always
+RestartSec=5
+Environment=APP_DIR=/home/${USER}/metaclaw
+
+# Security: executor needs docker socket access and sudo for journalctl
+SupplementaryGroups=docker
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=host-executor
+
+[Install]
+WantedBy=multi-user.target

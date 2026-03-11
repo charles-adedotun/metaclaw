@@ -1,0 +1,17 @@
+{
+  "claude": {
+    "timeoutMs": 120000,
+    "maxConcurrent": 1
+  },
+  "telegram": {
+    "chatId": "",
+    "maxMessageLength": 4096
+  },
+  "cron": {
+    "morningBriefing": "0 6 * * *",
+    "eveningDigest": "0 22 * * *",
+    "weeklyRecap": "0 17 * * 0",
+    "healthCheck": "0 * * * *",
+    "contextCompact": "0 3 * * *"
+  }
+}
