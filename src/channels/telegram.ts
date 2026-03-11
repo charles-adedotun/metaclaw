@@ -230,6 +230,18 @@ export class TelegramChannel implements Channel {
   async connect(): Promise<void> {
     this.bot = new Bot(this.botToken);
 
+    // Validate the token early — getMe() is the lightest API call and will
+    // fail immediately with a clear error if the token is invalid.
+    try {
+      await this.bot.api.getMe();
+    } catch (err) {
+      this.bot = null;
+      throw new Error(
+        `Invalid Telegram bot token — getMe() failed. Check TELEGRAM_BOT_TOKEN in .env. ` +
+        `(${err instanceof Error ? err.message : String(err)})`,
+      );
+    }
+
     // Start periodic upload cleanup (every hour)
     cleanupOldUploads();
     this.cleanupInterval = setInterval(cleanupOldUploads, 60 * 60 * 1000);
@@ -668,15 +680,35 @@ export class TelegramChannel implements Channel {
     this.bot.on('message:location', (ctx) => storeNonText(ctx, '[Location]'));
     this.bot.on('message:contact', (ctx) => storeNonText(ctx, '[Contact]'));
 
-    // Handle errors gracefully
+    // Handle errors gracefully — during startup, forward to startupReject
+    // so the connect() Promise settles instead of hanging.
+    let startupReject: ((err: Error) => void) | null = null;
+
     this.bot.catch((err) => {
       logger.error({ err: err.message }, 'Telegram bot error');
+      if (startupReject) {
+        startupReject(new Error(`Telegram bot startup failed: ${err.message}`));
+      }
     });
 
     // Start polling — returns a Promise that resolves when started
-    return new Promise<void>((resolve) => {
+    return new Promise<void>((resolve, reject) => {
+      startupReject = reject;
+
+      // Safety net: if neither onStart nor bot.catch fire within 30s,
+      // reject so the process doesn't hang indefinitely.
+      const startupTimeout = setTimeout(() => {
+        if (startupReject) {
+          startupReject = null;
+          reject(new Error('Telegram bot startup timed out after 30s'));
+        }
+      }, 30_000);
+
       this.bot!.start({
         onStart: async (botInfo) => {
+          clearTimeout(startupTimeout);
+          startupReject = null;
+
           logger.info(
             { username: botInfo.username, id: botInfo.id },
             'Telegram bot connected',

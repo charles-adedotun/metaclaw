@@ -20,8 +20,9 @@ elif git remote get-url origin &>/dev/null; then
 fi
 
 if [ -z "$REMOTE" ]; then
-  echo "No upstream remote found. Adding upstream → https://github.com/charles-adedotun/metaclaw.git"
-  git remote add upstream https://github.com/charles-adedotun/metaclaw.git
+  UPSTREAM_URL="${METACLAW_UPSTREAM_URL:-https://github.com/charles-adedotun/metaclaw.git}"
+  echo "No upstream remote found. Adding upstream → $UPSTREAM_URL"
+  git remote add upstream "$UPSTREAM_URL"
   REMOTE="upstream"
 fi
 

@@ -110,7 +110,7 @@ describe('fetch-upstream.sh', () => {
     }
   });
 
-  function runFetchUpstream(): { stdout: string; exitCode: number } {
+  function runFetchUpstream(envOverrides?: Record<string, string>): { stdout: string; exitCode: number } {
     try {
       const stdout = execFileSync(
         'bash',
@@ -120,6 +120,7 @@ describe('fetch-upstream.sh', () => {
           encoding: 'utf-8',
           stdio: 'pipe',
           timeout: 30_000,
+          env: { ...process.env, ...envOverrides },
         },
       );
       return { stdout, exitCode: 0 };
@@ -195,7 +196,7 @@ describe('fetch-upstream.sh', () => {
     }
   });
 
-  it('adds upstream remote when none exists', { timeout: 15_000 }, () => {
+  it('adds upstream remote when none exists', () => {
     // Remove origin if any
     try {
       execSync('git remote remove origin', {
@@ -206,19 +207,29 @@ describe('fetch-upstream.sh', () => {
       // No origin
     }
 
-    const { stdout } = runFetchUpstream();
+    // Point to the local bare repo instead of GitHub to avoid network dependency
+    const { stdout, exitCode } = runFetchUpstream({
+      METACLAW_UPSTREAM_URL: upstreamBareDir,
+    });
 
-    // It will try to add upstream pointing to github (which will fail to fetch),
-    // but we can verify it attempted to add the remote
     expect(stdout).toContain('Adding upstream');
 
-    // Verify the remote was added
+    // Verify the remote was added pointing to the local bare repo
     const remotes = execSync('git remote -v', {
       cwd: projectDir,
       encoding: 'utf-8',
     });
     expect(remotes).toContain('upstream');
-    expect(remotes).toContain('charles-adedotun/metaclaw');
+    expect(remotes).toContain(upstreamBareDir);
+
+    // With the local bare repo, fetch actually succeeds
+    expect(exitCode).toBe(0);
+    const status = parseStatus(stdout);
+    expect(status.STATUS).toBe('success');
+
+    if (status.TEMP_DIR) {
+      fs.rmSync(status.TEMP_DIR, { recursive: true, force: true });
+    }
   });
 
   it('extracts files to temp dir correctly', () => {

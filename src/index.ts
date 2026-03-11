@@ -616,7 +616,12 @@ async function main(): Promise<void> {
           })),
     });
     channels.push(telegram);
-    await telegram.connect();
+    try {
+      await telegram.connect();
+    } catch (err) {
+      logger.error({ err }, 'Telegram connection failed');
+      process.exit(1);
+    }
   }
 
   if (!TELEGRAM_ONLY) {

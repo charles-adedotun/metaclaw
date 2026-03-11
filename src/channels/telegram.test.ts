@@ -24,7 +24,7 @@ vi.mock('../logger.js', () => ({
 
 type Handler = (...args: any[]) => any;
 
-const botRef = vi.hoisted(() => ({ current: null as any }));
+const botRef = vi.hoisted(() => ({ current: null as any, failGetMe: false }));
 
 vi.mock('grammy', () => ({
   Bot: class MockBot {
@@ -34,6 +34,12 @@ vi.mock('grammy', () => ({
     errorHandler: Handler | null = null;
 
     api = {
+      getMe: vi.fn().mockImplementation(() => {
+        if (botRef.failGetMe) {
+          return Promise.reject(new Error('401 Unauthorized'));
+        }
+        return Promise.resolve({ username: 'andy_ai_bot', id: 12345 });
+      }),
       sendMessage: vi.fn().mockResolvedValue(undefined),
       sendChatAction: vi.fn().mockResolvedValue(undefined),
       getFile: vi.fn().mockResolvedValue({ file_path: null }),
@@ -242,6 +248,22 @@ describe('TelegramChannel', () => {
       const channel = new TelegramChannel('test-token', opts);
 
       expect(channel.isConnected()).toBe(false);
+    });
+
+    it('rejects with clear error for invalid token', async () => {
+      const opts = createTestOpts();
+      const channel = new TelegramChannel('bad-token', opts);
+
+      // Flag the mock to reject getMe (simulating invalid token)
+      botRef.failGetMe = true;
+      try {
+        await expect(channel.connect()).rejects.toThrow(
+          /Invalid Telegram bot token/,
+        );
+        expect(channel.isConnected()).toBe(false);
+      } finally {
+        botRef.failGetMe = false;
+      }
     });
   });
 
