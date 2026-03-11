@@ -15,7 +15,7 @@ export async function checkForUpdates(
     setTimeout(() => controller.abort(), 5000);
 
     const res = await fetch(
-      'https://raw.githubusercontent.com/qwibitai/MetaClaw/main/package.json',
+      'https://raw.githubusercontent.com/charles-adedotun/metaclaw/main/package.json',
       { signal: controller.signal },
     );
     if (!res.ok) return;
@@ -36,7 +36,7 @@ export async function checkForUpdates(
     );
 
     await notifyMainChannel(
-      `🔔 MetaClaw ${upstream.version} available (you're on ${local.version}). SysAdmin will auto-update Sunday 6 AM.`,
+      `🔔 MetaClaw ${upstream.version} available (you're on ${local.version}). Run /update to upgrade.`,
     );
   } catch {
     // Silently ignore — network issues, rate limits, etc.
