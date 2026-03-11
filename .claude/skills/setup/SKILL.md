@@ -23,6 +23,19 @@ Run `bash setup.sh` and parse the status block.
 - If NATIVE_OK=false → better-sqlite3 failed to load. Install build tools and re-run.
 - Record PLATFORM and IS_WSL for later steps.
 
+## 1.5. Name Your Assistant
+
+Before anything else, let the user personalize their assistant.
+
+AskUserQuestion: What would you like to name your assistant? (This is the name you'll use to trigger it — e.g., @Jarvis, @Friday, @Max, @Andy). Default: Assistant
+
+Write the chosen name to `.env` as `ASSISTANT_NAME=<name>`. If `.env` doesn't exist yet, copy `.env.example` to `.env` first, then update the value.
+
+Also update the main group identity:
+- In `groups/main/CLAUDE.md`, if the user chose a specific name, add a line `- **Name:** <name>` under the Identity section so the agent knows its name.
+
+This happens early so that every subsequent step (trigger word, registration, service) uses the right name.
+
 ## 2. Check Environment
 
 Run `npx tsx setup/index.ts --step environment` and parse the status block.
@@ -120,7 +133,7 @@ AskUserQuestion: Shared number or dedicated? → AskUserQuestion: Trigger word? 
 
 ## 8. Register Channel
 
-Run `npx tsx setup/index.ts --step register -- --jid "JID" --name "main" --trigger "@TriggerWord" --folder "main"` plus `--no-trigger-required` if personal/DM/solo, `--assistant-name "Name"` if not Andy.
+Run `npx tsx setup/index.ts --step register -- --jid "JID" --name "main" --trigger "@TriggerWord" --folder "main"` plus `--no-trigger-required` if personal/DM/solo, `--assistant-name "Name"` if not Assistant.
 
 ## 9. Mount Allowlist
 

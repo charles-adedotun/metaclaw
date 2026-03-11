@@ -57,7 +57,7 @@ const T = {
 };
 
 const doc = new Document({
-  creator: "Andy — Chief of Staff",
+  creator: process.env.ASSISTANT_NAME + " — Chief of Staff",
   title: "DOCUMENT_TITLE",
   styles: {
     default: {
@@ -138,7 +138,7 @@ const doc = new Document({
       // Subtitle / date
       new Paragraph({
         spacing: { after: 400 },
-        children: [new TextRun({ text: `Prepared by Andy • DATE`, size: 20, font: "Arial", color: T.textMuted, italics: true })]
+        children: [new TextRun({ text: `Prepared by " + (process.env.ASSISTANT_NAME || "Assistant") + " • DATE`, size: 20, font: "Arial", color: T.textMuted, italics: true })]
       }),
       // H1
       new Paragraph({ heading: HeadingLevel.HEADING_1, children: [new TextRun("Section Title")] }),

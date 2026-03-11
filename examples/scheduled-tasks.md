@@ -60,8 +60,8 @@ MetaClaw supports scheduling recurring tasks that run Claude agents automaticall
 
 From your main channel, talk to your assistant:
 ```
-@Andy list all scheduled tasks
-@Andy pause the morning briefing
-@Andy resume the health check
-@Andy cancel the weekly recap
+@Assistant list all scheduled tasks
+@Assistant pause the morning briefing
+@Assistant resume the health check
+@Assistant cancel the weekly recap
 ```

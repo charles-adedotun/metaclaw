@@ -263,7 +263,7 @@ story = []
 # Title block
 story.append(Paragraph("Report Title", styles['DocTitle']))
 story.append(HRFlowable(width="100%", thickness=2, color=SECONDARY, spaceAfter=4))
-story.append(Paragraph(f"Prepared by Andy  •  {TODAY}", styles['Subtitle']))
+story.append(Paragraph(f"Prepared by {os.environ.get("ASSISTANT_NAME", "Assistant")}  •  {TODAY}", styles['Subtitle']))
 
 # Sections
 story.append(Paragraph("Section Heading", styles['H1']))

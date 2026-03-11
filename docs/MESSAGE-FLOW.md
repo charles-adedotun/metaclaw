@@ -35,7 +35,7 @@ Each iteration:
 1. Calls `getNewMessages()` — fetches all messages with timestamp > `lastTimestamp` across all registered groups
 2. Advances `lastTimestamp` to the latest message seen (the "seen" cursor)
 3. Groups messages by `chat_jid`
-4. For each group, checks whether any message contains the trigger word (`@Andy`)
+4. For each group, checks whether any message contains the trigger word (`@Assistant`)
 5. Non-trigger messages are stored but skipped — they will be included as context when the next trigger arrives
 
 **Key detail:** There are two cursors:

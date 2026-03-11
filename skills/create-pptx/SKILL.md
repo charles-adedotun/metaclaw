@@ -33,7 +33,7 @@ Get the theme from the design-system. Build a theme object in code:
 const pptxgen = require('pptxgenjs');
 const pres = new pptxgen();
 pres.layout = "LAYOUT_WIDE"; // 13.33" x 7.5"
-pres.author = "Andy — Chief of Staff";
+pres.author = (process.env.ASSISTANT_NAME || "Assistant") + " — Chief of Staff";
 
 // Theme from design-system auto-selection
 // Example: Teal Trust (for CV topic)
@@ -243,7 +243,7 @@ const rows = [
   [
     { text: "Morning briefing", options: { fill: { color: T.white } } },
     { text: "6:00 AM daily", options: { fill: { color: T.white } } },
-    { text: "Andy", options: { fill: { color: T.white } } },
+    { text: process.env.ASSISTANT_NAME || "Assistant", options: { fill: { color: T.white } } },
   ],
   [
     { text: "Infra health", options: { fill: { color: T.bgAlt } } },
