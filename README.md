@@ -3,22 +3,39 @@
 </p>
 
 <p align="center">
-  An AI assistant that runs agents securely in their own containers. Lightweight, built to be easily understood and completely customized for your needs.
+  An open-source AI Chief of Staff framework — Claude agents running in isolated containers, controlled from your phone.
 </p>
 
 <p align="center">
-  <a href="https://discord.gg/VDdww8qS42"><img src="https://img.shields.io/discord/1470188214710046894?label=Discord&logo=discord&v=2" alt="Discord" valign="middle"></a>
+  <a href="https://github.com/charles-adedotun/metaclaw/stargazers"><img src="https://img.shields.io/github/stars/charles-adedotun/metaclaw?style=flat" alt="GitHub Stars"></a>
+  <a href="https://github.com/charles-adedotun/metaclaw/blob/main/LICENSE"><img src="https://img.shields.io/github/license/charles-adedotun/metaclaw" alt="License"></a>
+  <a href="https://github.com/charles-adedotun/metaclaw/actions"><img src="https://img.shields.io/github/actions/workflow/status/charles-adedotun/metaclaw/ci.yml?label=tests" alt="Tests"></a>
 </p>
 
-Using Claude Code, MetaClaw can dynamically rewrite its code to customize its feature set for your needs.
+## What is MetaClaw
 
-**New:** First AI assistant to support [Agent Swarms](https://code.claude.com/docs/en/agent-teams). Spin up teams of agents that collaborate in your chat.
+MetaClaw is an AI Chief of Staff (CoS) framework. It runs Claude agents in isolated Linux containers, orchestrated by a single Node.js process, and controlled from your phone via WhatsApp, Telegram, or other messaging channels.
 
-## Why I Built MetaClaw
+Think of it as a personal assistant that schedules tasks, manages group contexts, handles recurring work, and executes complex operations — all through the messaging apps you already use. Each agent runs in its own container with filesystem isolation, so you get real security without sacrificing capability.
 
-[OpenClaw](https://github.com/openclaw/openclaw) is an impressive project, but I wouldn't have been able to sleep if I had given complex software I didn't understand full access to my life. OpenClaw has nearly half a million lines of code, 53 config files, and 70+ dependencies. Its security is at the application level (allowlists, pairing codes) rather than true OS-level isolation. Everything runs in one Node process with shared memory.
+The entire codebase is small enough to read, understand, and customize in an afternoon.
 
-MetaClaw provides that same core functionality, but in a codebase small enough to understand: one process and a handful of files. Claude agents run in their own Linux containers with filesystem isolation, not merely behind permission checks.
+## Why MetaClaw
+
+[OpenClaw](https://github.com/openclaw/openclaw) is an impressive project with broad community support. But it comes with nearly half a million lines of code, 53 configuration files, and 70+ dependencies. Its security model operates at the application level — allowlists, pairing codes, permission checks — with everything running in a single process with shared memory.
+
+MetaClaw provides the same core functionality with a fundamentally different approach:
+
+| | OpenClaw | MetaClaw |
+|---|---|---|
+| **Codebase** | ~500k LOC | Small enough to read |
+| **Config files** | 53 | 0 (modify the code) |
+| **Dependencies** | 70+ | Minimal |
+| **Security model** | Application-level (allowlists, permission checks) | OS-level (container isolation) |
+| **Agent isolation** | Shared process memory | Separate Linux containers |
+| **Customization** | Configuration | Code changes via Claude Code |
+
+MetaClaw is for users who want to understand what they're running and trust the isolation model it uses.
 
 ## Quick Start
 
@@ -28,149 +45,125 @@ cd metaclaw
 claude
 ```
 
-Then run `/setup`. Claude Code handles everything: dependencies, authentication, container setup and service configuration.
+Then run `/setup`. Claude Code handles dependencies, authentication, container setup, and service configuration.
 
-## Philosophy
+## Features
 
-**Small enough to understand.** One process, a few source files and no microservices. If you want to understand the full MetaClaw codebase, just ask Claude Code to walk you through it.
+- **Multi-channel messaging** — WhatsApp, Telegram, Discord, Slack, Signal, or headless operation
+- **Container-isolated agents** — each agent runs in Docker or Apple Container with OS-level sandboxing
+- **Per-group memory and filesystem isolation** — every group gets its own `CLAUDE.md`, workspace, and container
+- **Scheduled tasks** — cron, interval, or one-shot jobs that run agents and report back
+- **Agent Swarms** — teams of specialized agents that collaborate on complex tasks within your chats
+- **Web access and file handling** — search the web, process uploads, generate documents
+- **Extensible via Claude Code skills** — add capabilities with `/add-telegram`, `/add-gmail`, and more
 
-**Secure by isolation.** Agents run in Linux containers (Apple Container on macOS, or Docker) and they can only see what's explicitly mounted. Bash access is safe because commands run inside the container, not on your host.
-
-**Built for the individual user.** MetaClaw isn't a monolithic framework; it's software that fits each user's exact needs. Instead of becoming bloatware, MetaClaw is designed to be bespoke. You make your own fork and have Claude Code modify it to match your needs.
-
-**Customization = code changes.** No configuration sprawl. Want different behavior? Modify the code. The codebase is small enough that it's safe to make changes.
-
-**AI-native.**
-- No installation wizard; Claude Code guides setup.
-- No monitoring dashboard; ask Claude what's happening.
-- No debugging tools; describe the problem and Claude fixes it.
-
-**Skills over features.** Instead of adding features (e.g. support for Telegram) to the codebase, contributors submit [claude code skills](https://code.claude.com/docs/en/skills) like `/add-telegram` that transform your fork. You end up with clean code that does exactly what you need.
-
-**Best harness, best model.** MetaClaw runs on the Claude Agent SDK, which means you're running Claude Code directly. Claude Code is highly capable and its coding and problem-solving capabilities allow it to modify and expand MetaClaw and tailor it to each user.
-
-## What It Supports
-
-- **Messenger I/O** - Message MetaClaw from your phone. Supports WhatsApp, Telegram, Discord, Slack, Signal and headless operation.
-- **Isolated group context** - Each group has its own `CLAUDE.md` memory, isolated filesystem, and runs in its own container sandbox with only that filesystem mounted to it.
-- **Main channel** - Your private channel (self-chat) for admin control; every group is completely isolated
-- **Scheduled tasks** - Recurring jobs that run Claude and can message you back
-- **Web access** - Search and fetch content from the Web
-- **Container isolation** - Agents are sandboxed in Apple Container (macOS) or Docker (macOS/Linux)
-- **Agent Swarms** - Spin up teams of specialized agents that collaborate on complex tasks. MetaClaw is the first personal AI assistant to support agent swarms.
-- **Optional integrations** - Add Gmail (`/add-gmail`) and more via skills
-
-## Usage
-
-Talk to your assistant with the trigger word (default: `@Andy`):
+## How It Works
 
 ```
-@Andy send an overview of the sales pipeline every weekday morning at 9am (has access to my Obsidian vault folder)
-@Andy review the git history for the past week each Friday and update the README if there's drift
-@Andy every Monday at 8am, compile news on AI developments from Hacker News and TechCrunch and message me a briefing
+WhatsApp (Baileys) → SQLite → Polling loop → Container (Claude Agent SDK) → Response
 ```
 
-From the main channel (your self-chat), you can manage groups and tasks:
+A single Node.js process connects to your messaging channels, stores incoming messages in SQLite, and dispatches them to Claude agents running inside isolated Linux containers. Agents communicate back to the host via an IPC filesystem protocol. Each group's container only sees its own mounted directories — nothing else.
+
+**Key files:**
+
+| File | Purpose |
+|------|---------|
+| `src/index.ts` | Orchestrator: state, message loop, agent invocation |
+| `src/channels/whatsapp.ts` | WhatsApp connection, auth, send/receive |
+| `src/channels/telegram.ts` | Telegram connection via grammy |
+| `src/ipc.ts` | IPC watcher and task processing |
+| `src/router.ts` | Message formatting and outbound routing |
+| `src/group-queue.ts` | Per-group queue with global concurrency limit |
+| `src/container-runner.ts` | Spawns streaming agent containers |
+| `src/task-scheduler.ts` | Runs scheduled tasks |
+| `src/db.ts` | SQLite operations (messages, groups, sessions, state) |
+| `groups/*/CLAUDE.md` | Per-group memory and instructions |
+
+## Usage Examples
+
+Talk to your assistant using the configured trigger word (e.g., `@Assistant`):
+
 ```
-@Andy list all scheduled tasks across groups
-@Andy pause the Monday briefing task
-@Andy join the Family Chat group
+@Assistant every weekday at 9am, summarize my unread emails and message me a briefing
+@Assistant review the git history weekly and flag anything unusual
+@Assistant compile top Hacker News stories each morning and send me a digest
 ```
 
-## Customizing
+From the main channel (your self-chat), manage groups and tasks:
 
-MetaClaw doesn't use configuration files. To make changes, just tell Claude Code what you want:
+```
+@Assistant list all scheduled tasks across groups
+@Assistant pause the morning briefing task
+@Assistant join the "Project Alpha" group
+```
 
-- "Change the trigger word to @Bob"
-- "Remember in the future to make responses shorter and more direct"
+The trigger word, assistant name, and behavior are all configurable — just tell Claude Code what you want.
+
+## Customization
+
+No config files. Modify the code.
+
+The codebase is small enough that Claude Code can safely make changes. Just describe what you want:
+
+- "Change the trigger word to @Jarvis"
+- "Make responses shorter and more direct"
 - "Add a custom greeting when I say good morning"
 - "Store conversation summaries weekly"
 
 Or run `/customize` for guided changes.
 
-The codebase is small enough that Claude can safely modify it.
-
 ## Contributing
 
-**Don't add features. Add skills.**
+**Skills over features.**
 
-If you want to add Telegram support, don't create a PR that adds Telegram alongside WhatsApp. Instead, contribute a skill file (`.claude/skills/add-telegram/SKILL.md`) that teaches Claude Code how to transform a MetaClaw installation to use Telegram.
+Instead of adding features directly to the codebase, contributors submit [Claude Code skills](https://code.claude.com/docs/en/skills) — markdown files that teach Claude Code how to transform a MetaClaw installation. Users run the skill on their fork and get clean code that does exactly what they need.
 
-Users then run `/add-telegram` on their fork and get clean code that does exactly what they need, not a bloated system trying to support every use case.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
-### RFS (Request for Skills)
+### Request for Skills (RFS)
 
-Skills we'd like to see:
+Skills the community would like to see:
 
 **Communication Channels**
-- `/add-slack` - Add Slack
+- `/add-slack` — Slack integration
 
 **Session Management**
-- `/clear` - Add a `/clear` command that compacts the conversation (summarizes context while preserving critical information in the same session). Requires figuring out how to trigger compaction programmatically via the Claude Agent SDK.
+- `/clear` — Conversation compaction (summarize context while preserving critical information)
 
 ## Requirements
 
 - macOS or Linux
 - Node.js 20+
 - [Claude Code](https://claude.ai/download)
-- [Apple Container](https://github.com/apple/container) (macOS) or [Docker](https://docker.com/products/docker-desktop) (macOS/Linux)
-
-## Architecture
-
-```
-WhatsApp (baileys) --> SQLite --> Polling loop --> Container (Claude Agent SDK) --> Response
-```
-
-Single Node.js process. Agents execute in isolated Linux containers with filesystem isolation. Only mounted directories are accessible. Per-group message queue with concurrency control. IPC via filesystem.
-
-Key files:
-- `src/index.ts` - Orchestrator: state, message loop, agent invocation
-- `src/channels/whatsapp.ts` - WhatsApp connection, auth, send/receive
-- `src/ipc.ts` - IPC watcher and task processing
-- `src/router.ts` - Message formatting and outbound routing
-- `src/group-queue.ts` - Per-group queue with global concurrency limit
-- `src/container-runner.ts` - Spawns streaming agent containers
-- `src/task-scheduler.ts` - Runs scheduled tasks
-- `src/db.ts` - SQLite operations (messages, groups, sessions, state)
-- `groups/*/CLAUDE.md` - Per-group memory
+- [Docker](https://docker.com/products/docker-desktop) (default) or [Apple Container](https://github.com/apple/container) (macOS, via `/convert-to-apple-container`)
 
 ## FAQ
 
 **Why Docker?**
-
-Docker provides cross-platform support (macOS, Linux and even Windows via WSL2) and a mature ecosystem. On macOS, you can optionally switch to Apple Container via `/convert-to-apple-container` for a lighter-weight native runtime.
+Docker provides cross-platform support (macOS, Linux, Windows via WSL2) and a mature ecosystem. On macOS, you can switch to Apple Container via `/convert-to-apple-container` for a lighter-weight native runtime.
 
 **Can I run this on Linux?**
-
 Yes. Docker is the default runtime and works on both macOS and Linux. Just run `/setup`.
 
 **Is this secure?**
-
-Agents run in containers, not behind application-level permission checks. They can only access explicitly mounted directories. You should still review what you're running, but the codebase is small enough that you actually can. See [docs/SECURITY.md](docs/SECURITY.md) for the full security model.
+Agents run in containers, not behind application-level permission checks. They can only access explicitly mounted directories. The codebase is small enough that you can audit it yourself. See [docs/SECURITY.md](docs/SECURITY.md) for the full security model.
 
 **Why no configuration files?**
-
-We don't want configuration sprawl. Every user should customize MetaClaw so that the code does exactly what they want, rather than configuring a generic system. If you prefer having config files, you can tell Claude to add them.
+Every user should customize MetaClaw so the code does exactly what they want, rather than configuring a generic system. If you prefer config files, tell Claude Code to add them.
 
 **How do I debug issues?**
+Ask Claude Code. "Why isn't the scheduler running?" "What's in the recent logs?" "Why did this message not get a response?" The AI-native approach means Claude Code is your debugger.
 
-Ask Claude Code. "Why isn't the scheduler running?" "What's in the recent logs?" "Why did this message not get a response?" That's the AI-native approach that underlies MetaClaw.
+**Why isn't setup working?**
+During setup, Claude Code will try to dynamically fix issues. If that doesn't work, run `claude` then `/debug`. If Claude finds an issue likely affecting other users, open a PR to improve the setup skill.
 
-**Why isn't the setup working for me?**
+**What changes are accepted to the base codebase?**
+Security fixes, bug fixes, and clear simplifications only. Everything else — new capabilities, OS compatibility, enhancements — should be contributed as skills. This keeps the base system minimal.
 
-If you have issues, during setup, Claude will try to dynamically fix them. If that doesn't work, run `claude`, then run `/debug`. If Claude finds an issue that is likely affecting other users, open a PR to modify the setup SKILL.md.
+## Security
 
-**What changes will be accepted into the codebase?**
-
-Only security fixes, bug fixes, and clear improvements will be accepted to the base configuration. That's all.
-
-Everything else (new capabilities, OS compatibility, hardware support, enhancements) should be contributed as skills.
-
-This keeps the base system minimal and lets every user customize their installation without inheriting features they don't want.
-
-## Community
-
-Questions? Ideas? [Join the Discord](https://discord.gg/VDdww8qS42).
+See [docs/SECURITY.md](docs/SECURITY.md) for the full security model, container isolation details, and threat analysis.
 
 ## License
 
