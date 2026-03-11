@@ -61,8 +61,8 @@ export async function performAutoUpdate(deps: AutoUpdateDeps): Promise<void> {
     let raw: string;
     try {
       raw = run('git', ['show', 'origin/main:package.json']);
-    } catch {
-      logger.info('Auto-update: could not read upstream package.json, skipping');
+    } catch (err) {
+      logger.warn({ err }, 'Auto-update: could not read upstream package.json, skipping');
       return;
     }
 
@@ -121,7 +121,8 @@ export async function performAutoUpdate(deps: AutoUpdateDeps): Promise<void> {
     // 6. Install dependencies
     try {
       run('npm', ['install', '--production=false'], 120000);
-    } catch {
+    } catch (err) {
+      logger.error({ err }, 'Auto-update: npm install failed');
       const ok = rollback(headBefore, false);
       await deps.notifyMainChannel(
         ok
@@ -134,7 +135,8 @@ export async function performAutoUpdate(deps: AutoUpdateDeps): Promise<void> {
     // 7. Build
     try {
       run('npm', ['run', 'build'], 120000);
-    } catch {
+    } catch (err) {
+      logger.error({ err }, 'Auto-update: build failed');
       const ok = rollback(headBefore, true);
       await deps.notifyMainChannel(
         ok
@@ -147,7 +149,8 @@ export async function performAutoUpdate(deps: AutoUpdateDeps): Promise<void> {
     // 8. Run tests
     try {
       run('npm', ['test'], 180000);
-    } catch {
+    } catch (err) {
+      logger.error({ err }, 'Auto-update: tests failed');
       const ok = rollback(headBefore, true);
       await deps.notifyMainChannel(
         ok
@@ -175,7 +178,7 @@ export async function performAutoUpdate(deps: AutoUpdateDeps): Promise<void> {
       await deps.notifyMainChannel(
         `❌ Auto-update encountered an unexpected error. Check VPS logs.`,
       );
-    } catch { /* notification channel itself failed — nothing left to do */ }
+    } catch (notifyErr) { logger.error({ notifyErr }, 'Auto-update: failed to notify about unexpected error'); }
   } finally {
     updateInProgress = false;
   }

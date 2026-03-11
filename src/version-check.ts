@@ -38,7 +38,7 @@ export async function checkForUpdates(
     await notifyMainChannel(
       `🔔 MetaClaw ${upstream.version} available (you're on ${local.version}). Run /update to upgrade.`,
     );
-  } catch {
-    // Silently ignore — network issues, rate limits, etc.
+  } catch (err) {
+    logger.debug({ err }, 'Version check failed');
   }
 }

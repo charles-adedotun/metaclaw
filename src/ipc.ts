@@ -471,7 +471,7 @@ export async function processTaskIpc(
         performAutoUpdate({ notifyMainChannel: notify }).catch(
           (err) => {
             logger.error({ err }, 'Auto-update failed');
-            notify(`❌ Auto-update failed unexpectedly. Check VPS logs.`).catch(() => {});
+            notify(`❌ Auto-update failed unexpectedly. Check VPS logs.`).catch((notifyErr) => { logger.error({ notifyErr }, 'Failed to notify about auto-update failure'); });
           },
         );
       } else {

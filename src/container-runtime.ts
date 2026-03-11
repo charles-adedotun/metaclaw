@@ -64,7 +64,8 @@ export function isGroupContainerRunning(groupFolder: string): string | null {
     );
     const running = output.trim().split('\n').filter(Boolean);
     return running.length > 0 ? running[0] : null;
-  } catch {
+  } catch (err) {
+    logger.warn({ groupFolder, err }, 'Failed to query container runtime for running containers');
     return null;
   }
 }
@@ -80,7 +81,7 @@ export function cleanupOrphans(): void {
     for (const name of orphans) {
       try {
         execSync(stopContainer(name), { stdio: 'pipe' });
-      } catch { /* already stopped */ }
+      } catch (err) { logger.debug({ name, err }, 'Failed to stop orphaned container (may already be stopped)'); }
     }
     if (orphans.length > 0) {
       logger.info({ count: orphans.length, names: orphans }, 'Stopped orphaned containers');
