@@ -3,7 +3,7 @@
 </p>
 
 <p align="center">
-  Container-isolated Claude agents controlled from messaging channels.
+  A Node.js orchestrator that routes WhatsApp and Telegram messages to Claude agents running in isolated Docker containers.
 </p>
 
 <p align="center">
@@ -12,174 +12,65 @@
   <a href="https://github.com/charles-adedotun/metaclaw/actions"><img src="https://img.shields.io/github/actions/workflow/status/charles-adedotun/metaclaw/test.yml?label=tests" alt="Tests"></a>
 </p>
 
-## What MetaClaw Does
+## What It Is
 
-MetaClaw is a Node.js orchestrator for Claude agents. It receives messages from configured channels, stores them in SQLite, and runs Claude Code inside per-group containers. Agents can respond to chats, process scheduled tasks, use mounted skills, and request host actions through a small filesystem IPC protocol.
+MetaClaw is a single Node.js process that bridges messaging channels (WhatsApp, Telegram) to Claude Code running inside per-group Docker containers. Each registered group — a "Chief of Staff", a Researcher, an Engineer — gets its own container with isolated filesystem, session state, and a system prompt defined in a plain Markdown file. Agents respond to chat messages, execute cron-scheduled tasks, and communicate back to the host through a small filesystem IPC protocol.
 
-The project is designed for personal or small-team agent automation where the operator wants to inspect and modify the codebase directly.
-
-Built-in channel support:
-
-- WhatsApp via Baileys
-- Telegram via grammy
-- Headless operation for scheduled or local workflows
-
-Additional channels and integrations are intended to be added through Claude Code skills.
+The container boundary is real: agent `bash` commands run inside Linux containers, not on your host. The codebase is deliberately small (~30 TypeScript source files) so the operator can read and own the whole thing.
 
 ## Architecture
 
-```
-Messaging channel
-      |
-      v
-SQLite message store
-      |
-      v
-Node.js orchestrator
-      |
-      v
-Per-group container running Claude Code
-      |
-      v
-Filesystem IPC back to host
-```
+- **Host orchestrator** (`src/index.ts`) — polls SQLite for new messages every 2 s, manages container lifecycle via `GroupQueue`, runs the IPC watcher and task scheduler in parallel loops.
+- **Per-group containers** — each group gets a separate Docker container running Claude Code via the `agent-runner` wrapper. Volume mounts are explicit and narrow: group workspace, IPC directory, uploads, and Claude session state.
+- **Filesystem IPC** — agents write JSON command files to `/workspace/ipc/messages/`. The host polls every 1 s and acts on `send_message`, `send_file`, `register_group`, `schedule_task`, and related commands.
+- **Skills** (`skills/`) — Claude Code skill definitions mounted read-only into every container. Built-in skills handle browser automation, document creation (PDF, DOCX, XLSX, PPTX), and file management. `/setup`, `/customize`, `/debug`, and `/update` skills handle the full operator workflow.
+- **Task scheduler** — SQLite-backed cron, interval, and one-shot tasks. Each task fires a container invocation with either a fresh or continuous Claude session.
+- **Mount security** — extra volume mounts are validated against an allowlist at `~/.config/metaclaw/mount-allowlist.json` before any container starts.
 
-The host process is responsible for channel connections, durable message storage, group queues, container lifecycle, task scheduling, outbound routing, mount validation, and IPC authorization.
+## Quickstart
 
-Each group has its own workspace, Claude session directory, upload directory, and IPC directory. The main group has elevated access and can receive a read-only mount of the project root. Non-main groups operate with narrower mounts and separate session state.
-
-## Core Components
-
-| Path | Purpose |
-|------|---------|
-| `src/index.ts` | Starts channels, database state, polling, IPC watcher, and scheduler |
-| `src/channels/whatsapp.ts` | WhatsApp connection, authentication, send, and receive |
-| `src/channels/telegram.ts` | Telegram connection, send, and receive |
-| `src/group-queue.ts` | Per-group container queue and stdin piping for active containers |
-| `src/container-runner.ts` | Container arguments, mounts, environment filtering, and streamed output |
-| `src/container-runtime.ts` | Docker and Apple Container runtime abstraction |
-| `src/ipc.ts` | Host-side IPC command processing and authorization |
-| `src/task-scheduler.ts` | Cron, interval, and one-shot scheduled tasks |
-| `src/db.ts` | SQLite persistence for messages, groups, sessions, state, and tasks |
-| `src/mount-security.ts` | Extra mount allowlist and path validation |
-| `container/agent-runner/` | Wrapper that runs Claude Code inside the agent container |
-| `groups/*/CLAUDE.md` | Per-group agent instructions and memory |
-| `skills/*/SKILL.md` | Claude Code skills mounted read-only into containers |
-
-## Security Model
-
-MetaClaw treats incoming chat messages and agent behavior as untrusted. The primary security boundary is container isolation, supported by host-side validation.
-
-Key properties:
-
-- Agents run in containers as the unprivileged `node` user.
-- Containers receive only explicit volume mounts.
-- The project root is mounted read-only for the main group.
-- Each group has isolated Claude session state under `data/sessions/{group}/.claude/`.
-- Extra mounts are validated against an external allowlist at `~/.config/metaclaw/mount-allowlist.json`.
-- Common credential paths and filenames are blocked from mounts.
-- IPC commands are authorized by group identity before the host executes them.
-- Container-visible environment variables are filtered to the Claude authentication values required for agent execution.
-
-Important limitations:
-
-- Agent containers currently have unrestricted network access.
-- Claude credentials must be available inside the agent environment so Claude Code can run.
-- This is not a hardened multi-tenant service. It is intended for operator-controlled deployments.
-
-See [docs/SECURITY.md](docs/SECURITY.md) for the full trust model, mount rules, credential handling, and IPC authorization matrix.
-
-## Message Handling
-
-Incoming messages are written to SQLite before processing. A polling loop groups new messages by chat and dispatches work through `GroupQueue`.
-
-If a group's container is already running, follow-up messages are written to its IPC input directory using an atomic file rename. If no container is active, MetaClaw starts a new one. If the global concurrency limit is reached, the group waits in the queue.
-
-The agent cursor advances only after processing is handed off. On startup, MetaClaw recovers messages that were stored but not processed before shutdown.
-
-See [docs/MESSAGE-FLOW.md](docs/MESSAGE-FLOW.md) for the detailed flow, retry behavior, timeout values, and recovery model.
-
-## Quick Start
+Requirements: Node.js 20+, Docker, Claude Code (the `claude` CLI).
 
 ```bash
 git clone https://github.com/charles-adedotun/metaclaw.git
 cd metaclaw
-claude
+cp .env.example .env          # set ASSISTANT_NAME, and TELEGRAM_BOT_TOKEN if using Telegram
+npm install
+claude                         # open Claude Code in the project root
 ```
 
-Then run:
+Inside Claude Code, run the setup skill:
 
-```text
+```
 /setup
 ```
 
-The setup skill installs dependencies, checks the platform, configures the selected channel, builds the container image, and installs the local service where supported.
+The setup skill builds the container image, configures your channel, and installs the system service (launchd on macOS, systemd on Linux).
 
-## Requirements
-
-- macOS or Linux
-- Node.js 20+
-- Claude Code
-- Docker by default, or Apple Container on macOS via `/convert-to-apple-container`
-
-## Development
+For subsequent development:
 
 ```bash
-npm run dev
-npm run build
-npm run typecheck
-npm test
-./container/build.sh
+npm run dev        # run with hot reload, no compile step
+npm run typecheck  # type-check without emitting
+npm test           # run all tests (vitest)
+./container/build.sh  # rebuild the agent container image
 ```
 
-Run a single test file:
+## Why This Exists
 
-```bash
-npx vitest run src/db.test.ts
-```
+The typical multi-agent framework ends up as a configuration maze: multiple processes, overlapping permission layers, integrations no one asked for, and a codebase too large to audit confidently. MetaClaw is the opposite: one process, one database, containers as the security boundary instead of application-level permission checks. Bash is safe because it runs inside the container, not on your machine.
 
-Run skill-engine tests:
+Non-goals:
+- **Not a hosted platform.** This is self-hosted, single-operator software.
+- **Not a multi-tenant service.** No auth layer, no user management — you are the only operator.
+- **Not a configuration-driven framework.** If you want different behavior, change the TypeScript. The codebase is small enough that this is practical.
 
-```bash
-npx vitest run --config vitest.skills.config.ts
-```
+New integrations are contributed as Claude Code skills (e.g. `/add-telegram`, `/add-discord`, `/convert-to-apple-container`) that transform the codebase on install, rather than adding runtime feature flags.
 
-## Configuration
+## Status
 
-Runtime settings are read from `.env` through `src/env.ts` and `src/config.ts`. Common values include:
-
-- `ASSISTANT_NAME`
-- `TELEGRAM_BOT_TOKEN`
-- `TELEGRAM_ONLY`
-- `CONTAINER_IMAGE`
-- `CONTAINER_TIMEOUT`
-- `IDLE_TIMEOUT`
-- `MAX_CONCURRENT_CONTAINERS`
-
-Group-specific files live under `groups/{name}/`. Optional extra mounts are declared per group and validated by the mount allowlist before a container starts.
-
-## Skills and Customization
-
-MetaClaw uses Claude Code skills for installation, debugging, updates, and optional integrations.
-
-| Skill | Purpose |
-|-------|---------|
-| `/setup` | Initial installation and channel authentication |
-| `/customize` | Guided changes to behavior, channels, integrations, or routing |
-| `/debug` | Container, service, authentication, and message-flow troubleshooting |
-| `/update` | Pull upstream changes, merge local customizations, and run migrations |
-| `/convert-to-apple-container` | Switch the runtime from Docker to Apple Container on macOS |
-
-Most feature changes should be implemented as skills rather than expanding the base orchestrator.
-
-## Contributing
-
-The base codebase accepts security fixes, reliability fixes, test coverage, documentation improvements, and clear simplifications.
-
-For new integrations or behavior changes, prefer a Claude Code skill that transforms an installation. This keeps the core orchestrator small and gives operators explicit control over what they add.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
+Active development. The core orchestrator, container isolation, IPC protocol, and task scheduler are stable. The skills API and group configuration format may change between versions. Not recommended for production multi-user deployments.
 
 ## License
 
-MIT
+[MIT](LICENSE)
