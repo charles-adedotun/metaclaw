@@ -6,7 +6,14 @@
     "type": "git",
     "url": "https://github.com/charles-adedotun/metaclaw.git"
   },
-  "keywords": ["claude", "ai-agent", "chief-of-staff", "container", "telegram", "whatsapp"],
+  "keywords": [
+    "claude",
+    "ai-agent",
+    "chief-of-staff",
+    "container",
+    "telegram",
+    "whatsapp"
+  ],
   "type": "module",
   "main": "dist/index.js",
   "scripts": {
@@ -22,7 +29,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "@whiskeysockets/baileys": "^7.0.0-rc11",
     "better-sqlite3": "^11.8.1",
     "cron-parser": "^5.5.0",
     "grammy": "^1.39.3",
